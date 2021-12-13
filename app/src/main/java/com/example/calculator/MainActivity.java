@@ -5,15 +5,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import org.mariuszgromada.math.mxparser.*;
 
 public class MainActivity extends AppCompatActivity {
 
     private EditText display;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -76,9 +78,33 @@ public class MainActivity extends AppCompatActivity {
     public void clearbtn(View view){
         display.setText("");
     }
+
     public void parenthesesbtn(View view){
-        updateText("()");
+
+        int cursorPos = display.getSelectionStart();
+        int openPar=0;
+        int closedPar=0;
+        int textLen = display.getText().length();
+
+        for(int i=0;i<cursorPos;i++){
+            if (display.getText().toString().substring(i,i+1).equals(")")) {
+                openPar += 1;
+            }
+            if (display.getText().toString().substring(i,i+1).equals("(")) {
+                closedPar += 1;
+            }
+        }
+        if(openPar == closedPar ||
+                display.getText().toString().substring(textLen-1,textLen).equals("(")){
+            updateText("(");
+        }
+        else if(closedPar != openPar &&
+                !display.getText().toString().substring(textLen-1,textLen).equals("(")){
+            updateText(")");
+        }
+        display.setSelection(cursorPos+1);
     }
+
     public void exponenttbn(View view){
         updateText("^");
     }
@@ -95,13 +121,24 @@ public class MainActivity extends AppCompatActivity {
         updateText("+");
     }
     public void equalsbtn(View view){
-        updateText("=");
+        String userExp = display.getText().toString();
+
+        userExp = userExp.replaceAll("&#0247;","/");
+        userExp = userExp.replaceAll("x","*");
+        //Log.i(userExp,"userExp");
+        Expression exp = new Expression(userExp);
+        String result = String.valueOf(exp.calculate());
+
+        display.setText(result);
+        display.setSelection(result.length());
     }
     public void pointbtn(View view){
         updateText(".");
     }
     public void plusMinusbtn(View view){
         updateText("+/-");
+        int cursorPos = display.getSelectionStart();
+        display.setSelection(cursorPos+2);
     }
     public void backspacebtn(View view){
         int cursorPos = display.getSelectionStart();
